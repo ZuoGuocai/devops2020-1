@@ -1,5 +1,6 @@
 ## 应用概述
-spring-boot web 项目，基于 gradle 构建  
+spring-boot web 示例项目  
+所有构建都基于docker方式处理  
 
 ## 流水线阶段描述 
 
@@ -25,6 +26,8 @@ kubernetes   : docker集群管理
 
  
 ## 演示说明
-jenkins 地址 : 
-账号：
-密码：
+jenkins 地址 :  
+
+
+SonarQube :http://47.116.135.192:9000  
+admin admin  

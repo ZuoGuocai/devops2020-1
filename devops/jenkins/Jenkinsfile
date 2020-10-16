@@ -18,7 +18,7 @@ if(params.dockerRegistry) {
 } else if(env.dockerRegistry) {
     registry = env.dockerRegistry
 } else {
-    registry = "harbor.shanghaicang.com.cn:1443"
+    registry = "10.10.5.42"
 }
 
 // Set image tag
@@ -80,17 +80,17 @@ nodeLabel = "master"
 node(nodeLabel) {
     def app
 
-    //stage('Checkouts Repository') {
-    //    checkout scm
-    //}
-
-    stage("Checkout from GitLab") {
-        script {
-            git branch: 'master',
-            credentialsId: '1',
-            url: 'https://git.ypcdev.cn:88/devops/java-test.git'
-        }
+    stage('Checkout from GitLab') {
+        checkout scm
     }
+
+    //stage("Checkout from GitLab") {
+    //    script {
+    //        git branch: 'master',
+    //        credentialsId: '1',
+    //        url: 'https://git.ypcdev.cn:88/devops/java-test.git'
+    //    }
+    //}
 
     stage('Unit Test') {
         try {
@@ -126,16 +126,16 @@ node(nodeLabel) {
         // 基于 插件
         script {
             script {
-                // tool 是配置的名字
+                // tool配置名字
                 def scannerHome = tool 'sonarqube-4.5.0.2216';
                 withSonarQubeEnv("sonarqube-container") {
                     sh "${tool("sonarqube-4.5.0.2216")}/bin/sonar-scanner \
-                        -Dsonar.projectKey=devops \
+                        -Dsonar.projectKey=devops-java \
                         -Dsonar.sources=src/main/java/ \
                         -Dsonar.java.binaries=build/classes \
                         -Dsonar.language=java \
-                        -Dsonar.host.url=http://192.168.1.22:9000 \
-                        -Dsonar.login=d52b0d79dafa5b319442ed23fae5aa980f0b5a53"
+                        -Dsonar.host.url=http://47.116.135.192:9000 \
+                        -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2"
                 }
             }
         }

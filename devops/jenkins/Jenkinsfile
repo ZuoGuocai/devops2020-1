@@ -1,0 +1,209 @@
+// parameters or env
+// aliRegistry(optional), default: harbor.shanghaicang.com.cn:1443
+// imageTag(optional), the build docker image tag, default: dev
+// pushImage(optional), whether push image to ali registry, default: true
+// nodeLabel(optional), the run jenkins node label, default: null, run in master
+// namespace(required), the running namespace in kubenetes
+// k8sService(optional), the k8s deployment service, default as service
+
+namespace="devops"
+deployName="devops-deploy"
+containerName="devops-containers"
+imagePath = "fx/devops-test"
+defaultEnv = "test"
+
+// Set ali image registry
+if(params.dockerRegistry) {
+    registry = params.dockerRegistry
+} else if(env.dockerRegistry) {
+    registry = env.dockerRegistry
+} else {
+    registry = "harbor.shanghaicang.com.cn:1443"
+}
+
+// Set image tag
+if(params.imageTag) {
+    imageTag = params.imageTag
+} else if(env.imageTag) {
+    imageTag = env.imageTag
+} else {
+    imageTag = "dev"
+}
+
+// Set whether push to ali image registry
+if(params.pushImage && "true".equals(params.pushImage)) {
+    pushImage = true
+} else if(env.pushImage && "true".equals(env.pushImage)) {
+    pushImage = true
+} else {
+    pushImage = true
+}
+
+// Set running node label
+if(params.nodeLabel) {
+    nodeLabel = params.nodeLabel
+} else if(env.nodeLabel) {
+    nodeLabel = env.nodeLabel
+} else {
+    nodeLabel = null
+}
+
+if(params.k8sContainerName) {
+    k8sContainerName = params.k8sContainerName
+} else if(env.k8sContainerName) {
+    k8sContainerName = env.k8sContainerName
+} else {
+    k8sContainerName = containerName
+}
+
+if(params.k8sDeployName) {
+    k8sDeployName = params.k8sDeployName
+} else if(env.k8sDeployName) {
+    k8sDeployName = env.k8sDeployName
+} else {
+    k8sDeployName = deployName
+}
+
+if(params.devployEnv) {
+    devployEnv = params.devployEnv
+} else if(env.devployEnv) {
+    devployEnv = env.devployEnv
+} else {
+    devployEnv = defaultEnv
+}
+
+imageTag = imageTag + '-'+devployEnv
+harbor_images_url=registry + '/' + imagePath + ':' + imageTag
+
+// checkoutBranch = "master"
+nodeLabel = "master"
+node(nodeLabel) {
+    def app
+
+    //stage('Checkouts Repository') {
+    //    checkout scm
+    //}
+
+    stage("Checkout from GitLab") {
+        script {
+            git branch: 'master',
+            credentialsId: '1',
+            url: 'https://git.ypcdev.cn:88/devops/java-test.git'
+        }
+    }
+
+    stage('Unit Test') {
+        try {
+            sh '''
+                mkdir -p /open/data/gradle/
+                DIR=$PWD
+                docker run -u root -v /open/data/gradle/:/home/gradle/.gradle/  -v ${DIR}:/home/gradle/ --rm  gradle:4.10.2-jdk11  /home/gradle/gradlew clean
+                docker run -u root -v /open/data/gradle/:/home/gradle/.gradle/  -v ${DIR}:/home/gradle/ --rm  gradle:4.10.2-jdk11  /home/gradle/gradlew test -Pprofile=test
+            '''
+        } catch(error) {
+            echo "Failed to Junit: " + error.getMessage()
+            sh 'exit 1'
+        } finally {
+            publishHTML([
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'build/reports/tests/test/',
+                reportFiles: 'index.html',
+                reportName: 'Junit Report'
+            ])
+        }
+    }
+
+    stage('SonarQube Check') {
+        // 基于 gradle
+        //  sh '''
+        //    mkdir -p /open/data/gradle/
+        //    DIR=$PWD
+        //    docker run -u root -v /open/data/gradle/:/home/gradle/.gradle/  -v ${DIR}:/home/gradle/ --rm  gradle:4.10.2-jdk11  /home/gradle/gradlew sonarqube  -Dsonar.projectKey=devops  -Dsonar.host.url=http://192.168.1.22:9000   -Dsonar.login=d52b0d79dafa5b319442ed23fae5aa980f0b5a53
+        //  '''
+
+        // 基于 插件
+        script {
+            script {
+                // tool 是配置的名字
+                def scannerHome = tool 'sonarqube-4.5.0.2216';
+                withSonarQubeEnv("sonarqube-container") {
+                    sh "${tool("sonarqube-4.5.0.2216")}/bin/sonar-scanner \
+                        -Dsonar.projectKey=devops \
+                        -Dsonar.sources=src/main/java/ \
+                        -Dsonar.java.binaries=build/classes \
+                        -Dsonar.language=java \
+                        -Dsonar.host.url=http://192.168.1.22:9000 \
+                        -Dsonar.login=d52b0d79dafa5b319442ed23fae5aa980f0b5a53"
+                }
+            }
+        }
+    }
+
+    stage('Build Jar') {
+        sh '''
+            DIR=$PWD
+            docker run -u root -v /open/data/gradle/:/home/gradle/.gradle/  -v ${DIR}:/home/gradle/ --rm  gradle:4.10.2-jdk11 /home/gradle/gradlew bootJar --profile  --warning-mode all
+            cp build/libs/devops-test-1.0.0-boot.jar devops/docker/
+
+            files=`ls ./build/reports/profile/`
+            cd build/reports/profile/
+            for file in $files
+            do
+                if [ -d $file ];then
+                   continue
+                fi
+                mv $file index.html
+            done
+        '''
+        publishHTML([
+            allowMissing: false,
+            alwaysLinkToLastBuild: true,
+            keepAll: true,
+            reportDir: 'build/reports/profile/',
+            reportFiles: 'index.html',
+            reportName: 'BuildJar Report'
+        ])
+    }
+
+    stage('Build Image') {
+        //修改java启动环境
+        sh '''
+            cd devops/docker
+            echo $PWD
+            sed -i "s/spring.profiles.active=test/spring.profiles.active=${devployEnv}/g" "Dockerfile"
+        '''
+
+        dir ("devops/docker/") {
+            app = docker.build(harbor_images_url)
+            app.push(imageTag)
+        }
+    }
+
+    stage('Deploy') {
+        date = new Date().format("yyyy-MM-dd-HH-mm-ss")
+        // 远程
+        // exec = 'ssh fubiao@192.168.20.252 ' + '"sudo kubectl -n ' + namespace + ' patch deployment ' + k8sService + '  --patch ' +  ''' '{\\"spec\\":{\\"template\\":{\\"metadata\\":{\\"labels\\":{\\"redeploy\\":\\"''' + date + '''\\"}},\\"spec\\":{\\"containers\\":[{\\"name\\":\\"''' + k8sService + '''\\",\\"image\\":\\"''' + image + '''\\"}]}}}}' ''' + '"'
+        // 本地
+        exec = 'kubectl -n ' + namespace + ' patch deployment ' + k8sDeployName + '  --patch ' +  ''' '{"spec":{"template":{"metadata":{"labels":{"redeploy":"''' + date + '''"}},"spec":{"containers":[{"name":"''' + k8sContainerName + '''","image":"''' + harbor_images_url + '''"}]}}}}' '''
+        sh exec
+
+        sh '''
+            last_str=$(curl --connect-timeout 5 -m 5 http://192.168.1.218:31897/check)
+            echo "last_str=${last_str}"
+            for i in {1..120}
+            do
+                sleep 1s
+                new_str=$(curl --connect-timeout 5 -m 5 http://192.168.1.218:31897/check)
+                echo $i"="$new_str
+                if [ "${last_str}" != "${new_str}" ]; then
+                    echo "deploy k8s success"
+                    exit 0;
+                fi
+            done
+            echo "deploy k8s fail"
+            exit 2;
+        '''
+    }
+}

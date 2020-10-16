@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: devops
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-deploy
+  namespace: devops
+  labels:
+    name: devops-deploy
+spec:
+  replicas: 1
+  minReadySeconds: 15
+  progressDeadlineSeconds: 300
+  revisionHistoryLimit: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchExpressions:
+      - key: name
+        operator: In
+        values: 
+        - devops-pod
+  template:
+    metadata:
+      labels:
+        name: devops-pod
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: devops-containers
+          image: harbor.shanghaicang.com.cn:1443/fx/devops-test:1.0-test
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 30001
+              name: http
+          resources:
+            requests:
+              cpu: 200m
+              memory: 500Mi
+            limits:
+              cpu: 500m
+              memory: 1000Mi
+          readinessProbe:
+            httpGet:
+              port: 30001
+              path: "/health"
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: "/health"
+              port: 30001
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 2
+            failureThreshold: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devops-service
+  namespace: devops
+spec:
+  type: ClusterIP
+  selector:
+    name: devops-pod
+  ports:
+    - port: 30001
+      name: http
+      protocol: TCP
+      targetPort: 30001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devops-nodeport
+  namespace: devops
+spec:
+  type: NodePort
+  selector:
+    name: devops-pod
+  ports:
+    - port: 30001
+      name: http
+      protocol: TCP
+      targetPort: 30001

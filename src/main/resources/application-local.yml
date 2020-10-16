@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: devops-local
+server:
+  port: 30001
+  address: 0.0.0.0
+
+logging.level.root: DEBUG
+logging.level.com.ypc: DEBUG

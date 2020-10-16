@@ -1,0 +1,39 @@
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+
+jar {
+    enabled = true
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+//                artifact bootJar
+            //上传到 SNAPSHOT仓库的版本号版本
+            version "1.0-SNAPSHOT"
+            artifact sourceJar {
+                classifier "sources"
+            }
+        }
+    }
+
+    publish {
+        dependsOn(jar)
+    }
+
+    repositories {
+        maven {
+            url = "http://192.168.1.217/nexus/repository/maven-snapshots/"
+            credentials {
+                username = "admin"
+                password = "1234qwer"
+            }
+        }
+    }
+
+}

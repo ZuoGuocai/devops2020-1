@@ -181,8 +181,8 @@ node(nodeLabel) {
                     -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2"
             }
             def qualityGate = waitForQualityGate()
-            if (qualityGate.status == "OK") {
-                error "Pipeline aborted due to quality gate coverage failure: ${qualitygate.status}"
+            if (qualityGate.status != "OK") {
+                error "quality gate failure: ${qualitygate.status}"
             }
             //timeout(time: 1, unit: 'HOURS') {
             //    waitForQualityGate abortPipeline: true

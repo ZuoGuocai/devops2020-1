@@ -18,7 +18,7 @@ if(params.dockerRegistry) {
 } else if(env.dockerRegistry) {
     registry = env.dockerRegistry
 } else {
-    registry = "local.harbor.com"
+    registry = "10.10.5.42"
 }
 
 // Set image tag

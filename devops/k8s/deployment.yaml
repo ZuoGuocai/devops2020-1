@@ -34,7 +34,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: devops-containers
-          image: local.harbor.com/library/devops-test:1.0-test
+          image: 10.10.5.42/library/devops-test:1.0-test
           imagePullPolicy: Always
           ports:
             - containerPort: 30001

@@ -119,6 +119,10 @@ def deployK8s(deployHarborImgUrl) {
     '''
 }
 
+def getGitBranchName() {
+       return scm.branches[0].name
+}
+
 nodeLabel = "master"
 node(nodeLabel) {
     def app
@@ -127,7 +131,9 @@ node(nodeLabel) {
     stage('Checkout from GitLab') {
         checkout scm
         print "$env"
-        if ( "$env.BRANCH_NAME" != checkoutBranch ) {
+        def BRANCH_NAME = getGitBranchName()
+        print "BRANCH_NAME=${BRANCH_NAME}"
+        if ( BRANCH_NAME != checkoutBranch ) {
 
             // 非部署分支，重新拉取
             script {

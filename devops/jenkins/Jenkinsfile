@@ -18,7 +18,7 @@ if(params.dockerRegistry) {
 } else if(env.dockerRegistry) {
     registry = env.dockerRegistry
 } else {
-    registry = "local.harbor.com"
+    registry = "10.10.5.42"
 }
 
 // Set image tag
@@ -72,18 +72,20 @@ if(params.deployEnv) {
     deployEnv = deployEnv
 }
 
-if(params.checkoutBranch) {
-    checkoutBranch = params.checkoutBranch
-} else if(env.deployEnv) {
-    checkoutBranch = env.checkoutBranch
+// git 分支名字
+if(deployEnv == "prod") {
+    checkoutBranch = "master"
 } else {
-    checkoutBranch = 'test'
+    checkoutBranch = deployEnv
 }
 
+
+
 // 发布版
-versionDate = new Date().format("yyyyMMddHHmmss")
-imageTag = imageTag + '-'+deployEnv + '-' + versionDate
+// versionDate = new Date().format("yyyyMMddHHmmss")
+imageTag = imageTag + '-'+deployEnv + '-' + "${BUILD_ID}"
 harborImagesUrl = registry + '/' + imagePath + ':' + imageTag
+
 
 // 稳定版
 stableImageTag = deployEnv + '-' +'stable'
@@ -118,13 +120,32 @@ def deployK8s(deployHarborImgUrl) {
     '''
 }
 
+// 获取默认拉取的 分支名字
+def getGitBranchName() {
+    return scm.branches[0].name.split("/")[1]
+}
+
 nodeLabel = "master"
 node(nodeLabel) {
     def app
 
+    // 默认 test 分支
     stage('Checkout from GitLab') {
-        // checkout scm
-        git checkout checkoutBranch
+        checkout scm
+        print "$env"
+        def BRANCH_NAME = getGitBranchName()
+        if ( BRANCH_NAME != checkoutBranch ) {
+            // 非部署分支，重新拉取
+            script {
+                git branch: checkoutBranch,
+                credentialsId: 'gitlab',
+                url: 'http://10.10.5.42:10000/devops/java-test.git'
+            }
+
+            git branch: "${checkoutBranch}", credentialsId: 'gitlab', url: 'http://10.10.5.42:10000/devops/java-test.git'
+            sh label: '',script: "git checkout ${checkoutBranch}"
+            print "git pull ${checkoutBranch} Success!"
+        }
     }
 
     //stage("Checkout from GitLab") {
@@ -158,7 +179,7 @@ node(nodeLabel) {
         }
     }
 
-    stage('SonarQube Check') {
+    stage('Code Check') {
         // 基于 gradle
         //  sh '''
         //    mkdir -p /open/data/gradle/
@@ -178,6 +199,12 @@ node(nodeLabel) {
                     -Dsonar.language=java \
                     -Dsonar.host.url=http://10.10.5.42:9000 \
                     -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2"
+            }
+            timeout(time: 1, unit: 'HOURS') {
+                def qg = waitForQualityGate()
+                if (qg.status != 'OK') {
+                    error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                }
             }
         }
     }
@@ -227,17 +254,16 @@ node(nodeLabel) {
     }
 
     stage('RollBack') {
-        operation = input("do you want to rollback ?");
-        if( !operation ) {
+        if( input("do you want to rollback ?") ) {
+            // 回滚,上次的稳定版
+            deployK8s(stableHarborImagesUrl)
+        }else {
             // 保存本次为 stable 版本
             dir ("devops/docker/") {
                 app = docker.build(stableHarborImagesUrl)
                 app.push(stableImageTag)
             }
-        }else {
-            // 回滚
-            // 上次的稳定版
-            deployK8s(stableHarborImagesUrl)
+
         }
     }
 }

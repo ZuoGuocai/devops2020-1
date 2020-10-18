@@ -85,7 +85,7 @@ versionDate = new Date().format("yyyyMMddHHmmss")
 imageTag = imageTag + '-'+deployEnv + '-' + versionDate
 harborImagesUrl = registry + '/' + imagePath + ':' + imageTag
 
-# BUILD_ID
+print "BUILD_ID=${BUILD_ID}"
 
 // 稳定版
 stableImageTag = deployEnv + '-' +'stable'

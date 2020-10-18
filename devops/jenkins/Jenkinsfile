@@ -254,11 +254,16 @@ node(nodeLabel) {
     }
     
     stage('Test'){
+        script {
+            env.RELEASE_SCOPE = input message: 'User input required', ok: 'Release!',
+                    parameters: [choice(name: 'RELEASE_SCOPE', choices: 'patch\nminor\nmajor', description: 'What is the release scope?')]
+        }
+        echo "${env.RELEASE_SCOPE}"
         def inputParameters = [
-                string(defaultValue: 'one', description: 'descr one', name: 'firstParam', trim: false),
-        string(defaultValue: 'two', description: 'descr two', name: 'secondParam', trim: false)
+            choice(name: 'rollback', choices: 'no\yes'),
+            choice(name: 'backup', choices: 'no\yes'),
         ];
-        def result = input id: 'InputContinue', message: 'Continue ?', parameters: inputParameters;
+        def result = input id: 'deploy-test', message: ' do you want to rollback and backup ?', parameters: inputParameters;
         echo result.toString();
     }
 
@@ -275,6 +280,7 @@ node(nodeLabel) {
 
         }
     }
+
 }
 
 

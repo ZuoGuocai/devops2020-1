@@ -81,11 +81,10 @@ if(params.checkoutBranch) {
 }
 
 // 发布版
-versionDate = new Date().format("yyyyMMddHHmmss")
-imageTag = imageTag + '-'+deployEnv + '-' + versionDate
+// versionDate = new Date().format("yyyyMMddHHmmss")
+imageTag = imageTag + '-'+deployEnv + '-' + "${BUILD_ID}"
 harborImagesUrl = registry + '/' + imagePath + ':' + imageTag
 
-print "BUILD_ID=${BUILD_ID}"
 
 // 稳定版
 stableImageTag = deployEnv + '-' +'stable'
@@ -160,7 +159,7 @@ node(nodeLabel) {
         }
     }
 
-    stage('SonarQube Check') {
+    stage('Code Check') {
         // 基于 gradle
         //  sh '''
         //    mkdir -p /open/data/gradle/
@@ -181,10 +180,13 @@ node(nodeLabel) {
                     -Dsonar.host.url=http://10.10.5.42:9000 \
                     -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2"
             }
-
-            timeout(time: 1, unit: 'HOURS') {
-                waitForQualityGate abortPipeline: true
+            def qualityGate = waitForQualityGate()
+            if (qualityGate.status != "OK") {
+                error "Pipeline aborted due to quality gate coverage failure: ${qualitygate.status}"
             }
+            //timeout(time: 1, unit: 'HOURS') {
+            //    waitForQualityGate abortPipeline: true
+            //}
         }
     }
 

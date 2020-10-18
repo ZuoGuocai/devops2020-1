@@ -179,6 +179,10 @@ node(nodeLabel) {
                     -Dsonar.host.url=http://10.10.5.42:9000 \
                     -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2"
             }
+
+            timeout(time: 1, unit: 'HOURS') {
+                waitForQualityGate abortPipeline: true
+            }
         }
     }
 

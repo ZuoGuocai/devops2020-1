@@ -123,7 +123,8 @@ node(nodeLabel) {
     def app
 
     stage('Checkout from GitLab') {
-        checkout scm
+        // checkout scm
+        git checkout checkoutBranch
     }
 
     //stage("Checkout from GitLab") {
@@ -148,7 +149,7 @@ node(nodeLabel) {
         } finally {
             publishHTML([
                 allowMissing: false,
-                alwaysLinkToLastBuild: true,
+                alwaysLinkToLastBuild: false,
                 keepAll: true,
                 reportDir: 'build/reports/tests/test/',
                 reportFiles: 'index.html',
@@ -199,7 +200,7 @@ node(nodeLabel) {
         '''
         publishHTML([
             allowMissing: false,
-            alwaysLinkToLastBuild: true,
+            alwaysLinkToLastBuild: false,
             keepAll: true,
             reportDir: 'build/reports/profile/',
             reportFiles: 'index.html',

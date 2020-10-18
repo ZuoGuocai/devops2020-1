@@ -126,7 +126,7 @@ node(nodeLabel) {
     // 默认 test 分支
     stage('Checkout from GitLab') {
         checkout scm
-        if ( BRANCH_NAME != checkoutBranch ) {
+        if ( "${BRANCH_NAME}" != checkoutBranch ) {
 
             // 非部署分支，重新拉取
             script {

@@ -9,8 +9,8 @@
 namespace="devops"
 deployName="devops-deploy"
 containerName="devops-containers"
-imagePath = "fx/devops-test"
-defaultEnv = "test"
+imagePath = "library/devops-test"
+deployEnv = "test"
 
 // Set ali image registry
 if(params.dockerRegistry) {
@@ -18,7 +18,7 @@ if(params.dockerRegistry) {
 } else if(env.dockerRegistry) {
     registry = env.dockerRegistry
 } else {
-    registry = "10.10.5.42"
+    registry = "local.harbor.com"
 }
 
 // Set image tag
@@ -64,33 +64,76 @@ if(params.k8sDeployName) {
     k8sDeployName = deployName
 }
 
-if(params.devployEnv) {
-    devployEnv = params.devployEnv
-} else if(env.devployEnv) {
-    devployEnv = env.devployEnv
+if(params.deployEnv) {
+    deployEnv = params.deployEnv
+} else if(env.deployEnv) {
+    deployEnv = env.deployEnv
 } else {
-    devployEnv = defaultEnv
+    deployEnv = deployEnv
 }
 
-imageTag = imageTag + '-'+devployEnv
-harbor_images_url=registry + '/' + imagePath + ':' + imageTag
+if(params.checkoutBranch) {
+    checkoutBranch = params.checkoutBranch
+} else if(env.deployEnv) {
+    checkoutBranch = env.checkoutBranch
+} else {
+    checkoutBranch = 'test'
+}
+
+// 发布版
+versionDate = new Date().format("yyyyMMddHHmmss")
+imageTag = imageTag + '-'+deployEnv + '-' + versionDate
+harborImagesUrl = registry + '/' + imagePath + ':' + imageTag
+
+// 稳定版
+stableImageTag = deployEnv + '-' +'stable'
+stableHarborImagesUrl = registry + '/' + imagePath + ':' + stableImageTag
+
+
+def deployK8s(deployHarborImgUrl) {
+
+     deployDate = new Date().format("yyyy-MM-dd-HH-mm-ss")
+    // 远程
+    // exec = 'ssh fubiao@192.168.20.252 ' + '"sudo kubectl -n ' + namespace + ' patch deployment ' + k8sService + '  --patch ' +  ''' '{\\"spec\\":{\\"template\\":{\\"metadata\\":{\\"labels\\":{\\"redeploy\\":\\"''' + deployDate + '''\\"}},\\"spec\\":{\\"containers\\":[{\\"name\\":\\"''' + k8sService + '''\\",\\"image\\":\\"''' + image + '''\\"}]}}}}' ''' + '"'
+    // 本地
+    exec = 'kubectl -n ' + namespace + ' patch deployment ' + k8sDeployName + '  --patch ' +  ''' '{"spec":{"template":{"metadata":{"labels":{"redeploy":"''' + deployDate + '''"}},"spec":{"containers":[{"name":"''' + k8sContainerName + '''","image":"''' + deployHarborImgUrl + '''"}]}}}}' '''
+    sh exec
+
+    // 应用是否更新完成
+    sh '''
+        last_str=$(curl --connect-timeout 5 -m 5 http://10.10.5.43:31897/check)
+        echo "last_str=${last_str}"
+        for i in {1..120}
+        do
+            sleep 1s
+            new_str=$(curl --connect-timeout 5 -m 5 http://10.10.5.43:31897/check)
+            echo $i"="$new_str
+            if [ "${last_str}" != "${new_str}" ]; then
+                echo "deploy k8s success"
+                exit 0;
+            fi
+        done
+        echo "deploy k8s fail"
+        exit 2;
+    '''
+}
 
 // checkoutBranch = "master"
 nodeLabel = "master"
 node(nodeLabel) {
     def app
 
-    stage('Checkout from GitLab') {
-        checkout scm
-    }
-
-    //stage("Checkout from GitLab") {
-    //    script {
-    //        git branch: 'master',
-    //        credentialsId: '1',
-    //        url: 'https://git.ypcdev.cn:88/devops/java-test.git'
-    //    }
+    //stage('Checkout from GitLab') {
+    //    checkout scm
     //}
+
+    stage("Checkout from GitLab") {
+        script {
+            git branch: checkoutBranch,
+            credentialsId: 'gitlab',
+            url: 'http://10.10.5.42:10000/devops/java-test.git'
+        }
+    }
 
     stage('Unit Test') {
         try {
@@ -125,18 +168,16 @@ node(nodeLabel) {
 
         // 基于 插件
         script {
-            script {
-                // tool配置名字
-                def scannerHome = tool 'sonarqube-4.5.0.2216';
-                withSonarQubeEnv("sonarqube-container") {
-                    sh "${tool("sonarqube-4.5.0.2216")}/bin/sonar-scanner \
-                        -Dsonar.projectKey=devops-java \
-                        -Dsonar.sources=src/main/java/ \
-                        -Dsonar.java.binaries=build/classes \
-                        -Dsonar.language=java \
-                        -Dsonar.host.url=http://47.116.135.192:9000 \
-                        -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2"
-                }
+            // tool配置名字
+            def scannerHome = tool 'sonarqube';
+            withSonarQubeEnv("sonarqube-container") {
+                sh "${tool("sonarqube")}/bin/sonar-scanner \
+                    -Dsonar.projectKey=devops-java \
+                    -Dsonar.sources=src/main/java/ \
+                    -Dsonar.java.binaries=build/classes \
+                    -Dsonar.language=java \
+                    -Dsonar.host.url=http://10.10.5.42:9000 \
+                    -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2"
             }
         }
     }
@@ -172,38 +213,33 @@ node(nodeLabel) {
         sh '''
             cd devops/docker
             echo $PWD
-            sed -i "s/spring.profiles.active=test/spring.profiles.active=${devployEnv}/g" "Dockerfile"
+            sed -i "s/spring.profiles.active=test/spring.profiles.active=${deployEnv}/g" "Dockerfile"
         '''
 
         dir ("devops/docker/") {
-            app = docker.build(harbor_images_url)
+            app = docker.build(harborImagesUrl)
             app.push(imageTag)
         }
     }
 
     stage('Deploy') {
-        date = new Date().format("yyyy-MM-dd-HH-mm-ss")
-        // 远程
-        // exec = 'ssh fubiao@192.168.20.252 ' + '"sudo kubectl -n ' + namespace + ' patch deployment ' + k8sService + '  --patch ' +  ''' '{\\"spec\\":{\\"template\\":{\\"metadata\\":{\\"labels\\":{\\"redeploy\\":\\"''' + date + '''\\"}},\\"spec\\":{\\"containers\\":[{\\"name\\":\\"''' + k8sService + '''\\",\\"image\\":\\"''' + image + '''\\"}]}}}}' ''' + '"'
-        // 本地
-        exec = 'kubectl -n ' + namespace + ' patch deployment ' + k8sDeployName + '  --patch ' +  ''' '{"spec":{"template":{"metadata":{"labels":{"redeploy":"''' + date + '''"}},"spec":{"containers":[{"name":"''' + k8sContainerName + '''","image":"''' + harbor_images_url + '''"}]}}}}' '''
-        sh exec
+        deployK8s(harborImagesUrl)
+    }
 
-        sh '''
-            last_str=$(curl --connect-timeout 5 -m 5 http://192.168.1.218:31897/check)
-            echo "last_str=${last_str}"
-            for i in {1..120}
-            do
-                sleep 1s
-                new_str=$(curl --connect-timeout 5 -m 5 http://192.168.1.218:31897/check)
-                echo $i"="$new_str
-                if [ "${last_str}" != "${new_str}" ]; then
-                    echo "deploy k8s success"
-                    exit 0;
-                fi
-            done
-            echo "deploy k8s fail"
-            exit 2;
-        '''
+    stage('RollBack') {
+        operation = input("do you want to rollback ?");
+        if( !operation ) {
+            // 保存本次为 stable 版本
+            dir ("devops/docker/") {
+                app = docker.build(stableHarborImagesUrl)
+                app.push(stableImageTag)
+            }
+        }else {
+            // 回滚
+            // 上次的稳定版
+            deployK8s(stableHarborImagesUrl)
+        }
     }
 }
+
+

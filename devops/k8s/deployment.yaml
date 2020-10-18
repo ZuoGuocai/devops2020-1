@@ -94,3 +94,4 @@ spec:
       name: http
       protocol: TCP
       targetPort: 30001
+      nodePort: 31897

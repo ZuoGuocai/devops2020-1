@@ -86,11 +86,9 @@ if(deployEnv == "prod") {
 imageTag = imageTag + '-'+deployEnv + '-' + "${BUILD_ID}"
 harborImagesUrl = registry + '/' + imagePath + ':' + imageTag
 
-
 // 稳定版
 stableImageTag = deployEnv + '-' +'stable'
 stableHarborImagesUrl = registry + '/' + imagePath + ':' + stableImageTag
-
 
 def deployK8s(deployHarborImgUrl) {
 
@@ -123,6 +121,11 @@ def deployK8s(deployHarborImgUrl) {
 // 获取默认拉取的 分支名字
 def getGitBranchName() {
     return scm.branches[0].name.split("/")[1]
+}
+
+//
+def sendDingDing() {
+
 }
 
 nodeLabel = "master"
@@ -260,7 +263,8 @@ node(nodeLabel) {
             choice(name: 'backup', choices: "no/yes")
         ];
         def result = input id: 'deploy-test', message: ' do you want to rollback and backup ?', parameters: inputParameters;
-        echo result.toString();
+        echo result[0];
+        echo result[1];
     }
 
     stage('RollBack') {

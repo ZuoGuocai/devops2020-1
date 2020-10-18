@@ -180,13 +180,12 @@ node(nodeLabel) {
                     -Dsonar.host.url=http://10.10.5.42:9000 \
                     -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2"
             }
-            def qualityGate = waitForQualityGate()
-            if (qualityGate.status != "OK") {
-                error "quality gate failure: ${qualitygate.status}"
+            timeout(time: 1, unit: 'HOURS') {
+                def qg = waitForQualityGate()
+                if (qg.status != 'OK') {
+                    error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                }
             }
-            //timeout(time: 1, unit: 'HOURS') {
-            //    waitForQualityGate abortPipeline: true
-            //}
         }
     }
 

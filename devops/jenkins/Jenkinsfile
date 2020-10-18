@@ -123,17 +123,17 @@ nodeLabel = "master"
 node(nodeLabel) {
     def app
 
-    //stage('Checkout from GitLab') {
-    //    checkout scm
-    //}
-
-    stage("Checkout from GitLab") {
-        script {
-            git branch: checkoutBranch,
-            credentialsId: 'gitlab',
-            url: 'http://10.10.5.42:10000/devops/java-test.git'
-        }
+    stage('Checkout from GitLab') {
+        checkout scm
     }
+
+    //stage("Checkout from GitLab") {
+    //    script {
+    //        git branch: checkoutBranch,
+    //        credentialsId: 'gitlab',
+    //        url: 'http://10.10.5.42:10000/devops/java-test.git'
+    //    }
+    //}
 
     stage('Unit Test') {
         try {

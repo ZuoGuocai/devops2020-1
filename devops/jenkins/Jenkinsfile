@@ -236,18 +236,18 @@ node(nodeLabel) {
 
     stage('RollBack') {
         operation = input("do you want to rollback ?");
-        if( !operation ) {
+        if( operation ) {
+            // 回滚,上次的稳定版
+            print "yes=>${operation}"
+            deployK8s(stableHarborImagesUrl)
+        }else {
             // 保存本次为 stable 版本
             print "no=>${operation}"
             dir ("devops/docker/") {
                 app = docker.build(stableHarborImagesUrl)
                 app.push(stableImageTag)
             }
-        }else {
-            // 回滚
-            // 上次的稳定版
-            print "yes=>${operation}"
-            deployK8s(stableHarborImagesUrl)
+
         }
     }
 }

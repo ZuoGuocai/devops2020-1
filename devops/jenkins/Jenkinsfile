@@ -126,7 +126,7 @@ node(nodeLabel) {
     // 默认 test 分支
     stage('Checkout from GitLab') {
         checkout scm
-        print "BRANCH_NAME=>$env.BRANCH_NAME"
+        print "$env"
         if ( "$env.BRANCH_NAME" != checkoutBranch ) {
 
             // 非部署分支，重新拉取

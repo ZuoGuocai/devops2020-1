@@ -235,8 +235,7 @@ node(nodeLabel) {
     }
 
     stage('RollBack') {
-        operation = input("do you want to rollback ?");
-        if( operation ) {
+        if( input("do you want to rollback ?") ) {
             // 回滚,上次的稳定版
             print "yes=>${operation}"
             deployK8s(stableHarborImagesUrl)

@@ -252,6 +252,15 @@ node(nodeLabel) {
     stage('Deploy') {
         deployK8s(harborImagesUrl)
     }
+    
+    stage('Test'){
+        def inputParameters = [
+                string(defaultValue: 'one', description: 'descr one', name: 'firstParam', trim: false),
+        string(defaultValue: 'two', description: 'descr two', name: 'secondParam', trim: false)
+        ];
+        def result = input id: 'InputContinue', message: 'Continue ?', parameters: inputParameters;
+        echo result.toString();
+    }
 
     stage('RollBack') {
         if( input("do you want to rollback ?") ) {

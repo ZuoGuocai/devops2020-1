@@ -85,6 +85,8 @@ versionDate = new Date().format("yyyyMMddHHmmss")
 imageTag = imageTag + '-'+deployEnv + '-' + versionDate
 harborImagesUrl = registry + '/' + imagePath + ':' + imageTag
 
+# BUILD_ID
+
 // 稳定版
 stableImageTag = deployEnv + '-' +'stable'
 stableHarborImagesUrl = registry + '/' + imagePath + ':' + stableImageTag
@@ -123,8 +125,8 @@ node(nodeLabel) {
     def app
 
     stage('Checkout from GitLab') {
-        // checkout scm
-        git checkout checkoutBranch
+        checkout scm
+        //git checkout checkoutBranch
     }
 
     //stage("Checkout from GitLab") {

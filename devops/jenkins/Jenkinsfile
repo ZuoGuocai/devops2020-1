@@ -118,7 +118,6 @@ def deployK8s(deployHarborImgUrl) {
     '''
 }
 
-// checkoutBranch = "master"
 nodeLabel = "master"
 node(nodeLabel) {
     def app

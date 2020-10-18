@@ -254,10 +254,10 @@ node(nodeLabel) {
     }
     
     stage('Test'){
-        
+
         def inputParameters = [
             choice(name: 'rollback', choices: 'no\yes'),
-            choice(name: 'backup', choices: 'no\yes'),
+            choice(name: 'backup', choices: 'no\yes')
         ];
         def result = input id: 'deploy-test', message: ' do you want to rollback and backup ?', parameters: inputParameters;
         echo result.toString();

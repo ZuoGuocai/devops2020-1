@@ -72,6 +72,7 @@ if(params.deployEnv) {
     deployEnv = deployEnv
 }
 
+// git 分支名字
 if(deployEnv == "prod") {
     checkoutBranch = "master"
 } else {
@@ -119,6 +120,7 @@ def deployK8s(deployHarborImgUrl) {
     '''
 }
 
+// 获取默认拉取的 分支名字
 def getGitBranchName() {
     return scm.branches[0].name.split("/")[1]
 }
@@ -132,10 +134,7 @@ node(nodeLabel) {
         checkout scm
         print "$env"
         def BRANCH_NAME = getGitBranchName()
-        print "BRANCH_NAME=${BRANCH_NAME}"
-        sh 'env'
         if ( BRANCH_NAME != checkoutBranch ) {
-
             // 非部署分支，重新拉取
             script {
                 git branch: checkoutBranch,
@@ -257,11 +256,9 @@ node(nodeLabel) {
     stage('RollBack') {
         if( input("do you want to rollback ?") ) {
             // 回滚,上次的稳定版
-            print "yes=>${operation}"
             deployK8s(stableHarborImagesUrl)
         }else {
             // 保存本次为 stable 版本
-            print "no=>${operation}"
             dir ("devops/docker/") {
                 app = docker.build(stableHarborImagesUrl)
                 app.push(stableImageTag)

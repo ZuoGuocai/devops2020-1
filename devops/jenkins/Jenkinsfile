@@ -123,9 +123,22 @@ nodeLabel = "master"
 node(nodeLabel) {
     def app
 
+    // 默认 test 分支
     stage('Checkout from GitLab') {
         checkout scm
-        //git checkout checkoutBranch
+        if ( BRANCH_NAME != checkoutBranch ) {
+
+            // 非部署分支，重新拉取
+            script {
+                git branch: checkoutBranch,
+                credentialsId: 'gitlab',
+                url: 'http://10.10.5.42:10000/devops/java-test.git'
+            }
+
+            git branch: "${checkoutBranch}", credentialsId: 'gitlab', url: 'http://10.10.5.42:10000/devops/java-test.git'
+            sh label: '',script: "git checkout ${checkoutBranch}"
+            print "git pull ${checkoutBranch} Success!"
+        }
     }
 
     //stage("Checkout from GitLab") {

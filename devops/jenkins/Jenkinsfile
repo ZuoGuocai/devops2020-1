@@ -72,13 +72,13 @@ if(params.deployEnv) {
     deployEnv = deployEnv
 }
 
-if(params.checkoutBranch) {
-    checkoutBranch = params.checkoutBranch
-} else if(env.deployEnv) {
-    checkoutBranch = env.checkoutBranch
+if(deployEnv == "prod") {
+    checkoutBranch = "master"
 } else {
-    checkoutBranch = 'test'
+    checkoutBranch = deployEnv
 }
+
+
 
 // 发布版
 // versionDate = new Date().format("yyyyMMddHHmmss")

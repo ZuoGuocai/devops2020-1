@@ -133,7 +133,7 @@ node(nodeLabel) {
     def app
 
     // 默认 test 分支
-    stage('Checkout from GitLab') {
+    stage('Checkout Git') {
         checkout scm
         print "$env"
         def BRANCH_NAME = getGitBranchName()
@@ -263,8 +263,8 @@ node(nodeLabel) {
             choice(name: 'backup', choices: "no/yes")
         ];
         def result = input id: 'deploy-test', message: ' do you want to rollback and backup ?', parameters: inputParameters;
-        echo result[0];
-        echo result[1];
+        echo result.rollback;
+        echo result.backup;
     }
 
     stage('RollBack') {

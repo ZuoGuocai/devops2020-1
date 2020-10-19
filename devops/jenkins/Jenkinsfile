@@ -144,36 +144,6 @@ node(nodeLabel) {
         }
     }
 
-    stage('Code Check') {
-        // 基于 gradle
-        //  sh '''
-        //    mkdir -p /open/data/gradle/
-        //    DIR=$PWD
-        //    docker run -u root -v /open/data/gradle/:/home/gradle/.gradle/  -v ${DIR}:/home/gradle/ --rm  gradle:4.10.2-jdk11  /home/gradle/gradlew sonarqube  -Dsonar.projectKey=devops-java  -Dsonar.host.url=http://10.10.5.42:9000   -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2
-        //  '''
-
-        // 基于 插件
-        script {
-            def scannerHome = tool 'sonarqube';
-            withSonarQubeEnv("sonarqube-server") {
-                sh "${tool("sonarqube")}/bin/sonar-scanner \
-                    -Dsonar.projectKey=devops-java \
-                    -Dsonar.sources=src/main/java/ \
-                    -Dsonar.java.binaries=build/classes \
-                    -Dsonar.java.libraries=libs/ \
-                    -Dsonar.language=java \
-                    -Dsonar.host.url=http://10.10.5.42:9000 \
-                    -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2"
-            }
-            timeout(time: 1, unit: 'HOURS') {
-                def qg = waitForQualityGate()
-                if (qg.status != 'OK') {
-                    error "Pipeline aborted due to quality gate failure: ${qg.status}"
-                }
-            }
-        }
-    }
-
     stage('Build Jar') {
         sh '''
             DIR=$PWD
@@ -199,6 +169,38 @@ node(nodeLabel) {
             reportName: 'BuildJar Report'
         ])
     }
+
+    stage('Code Check') {
+        // 基于 gradle
+        //  sh '''
+        //    mkdir -p /open/data/gradle/
+        //    DIR=$PWD
+        //    docker run -u root -v /open/data/gradle/:/home/gradle/.gradle/  -v ${DIR}:/home/gradle/ --rm  gradle:4.10.2-jdk11  /home/gradle/gradlew sonarqube  -Dsonar.projectKey=devops-java  -Dsonar.host.url=http://10.10.5.42:9000   -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2
+        //  '''
+
+        // 基于 插件
+        script {
+            def scannerHome = tool 'sonarqube';
+            withSonarQubeEnv("sonarqube-server") {
+                sh "${tool("sonarqube")}/bin/sonar-scanner \
+                    -Dsonar.projectKey=devops-java \
+                    -Dsonar.sources=src/main/java/ \
+                    -Dsonar.java.binaries=build/classes \
+                    -Dsonar.java.libraries=build/libs/ \
+                    -Dsonar.language=java \
+                    -Dsonar.host.url=http://10.10.5.42:9000 \
+                    -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2"
+            }
+            timeout(time: 1, unit: 'HOURS') {
+                def qg = waitForQualityGate()
+                if (qg.status != 'OK') {
+                    error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                }
+            }
+        }
+    }
+
+    
 
     stage('Build Image') {
         //修改java启动环境

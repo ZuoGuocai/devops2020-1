@@ -195,7 +195,7 @@ node(nodeLabel) {
         script {
             // tool配置名字
             def scannerHome = tool 'sonarqube';
-            withSonarQubeEnv("sonarqube-container") {
+            withSonarQubeEnv("sonarqube-server") {
                 sh "${tool("sonarqube")}/bin/sonar-scanner \
                     -Dsonar.projectKey=devops-java \
                     -Dsonar.sources=src/main/java/ \
@@ -273,7 +273,7 @@ node(nodeLabel) {
             // 回滚,上次的稳定版
             deployK8s(stableHarborImagesUrl)
         }
-        
+
         if ( result.backup == "yes" ) {
             // 保存本次为 stable 版本
             dir ("devops/docker/") {

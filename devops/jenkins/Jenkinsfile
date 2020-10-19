@@ -83,7 +83,7 @@ if(deployEnv == "prod") {
 // 发布版
 //"${BUILD_ID}"
 versionDate = new Date().format("yyyyMMddHHmmss")
-publishImageTag = imageTag + '-'+deployEnv + '-' +  versionDate 
+publishImageTag = imageTag + '-'+deployEnv + '-' +  "${BUILD_ID}" 
 harborImagesUrl = registry + '/' + imagePath + ':' + publishImageTag
 
 // 稳定版

@@ -80,7 +80,6 @@ if(deployEnv == "prod") {
     checkoutBranch = deployEnv
 }
 
-
 // 发布版
 //"${BUILD_ID}"
 versionDate = new Date().format("yyyyMMddHHmmss")
@@ -90,9 +89,6 @@ harborImagesUrl = registry + '/' + imagePath + ':' + publishImageTag
 // 稳定版
 stableImageTag = imageTag + '-' + deployEnv + '-' +'stable'
 stableHarborImagesUrl = registry + '/' + imagePath + ':' + stableImageTag
-
-
-
 
 nodeLabel = "master"
 node(nodeLabel) {
@@ -224,14 +220,17 @@ node(nodeLabel) {
 
     stage('RollBack') {
         def inputParameters = [
-            choice(name: 'rollback', choices: "no\nyes"),
-            choice(name: 'backup', choices: "no\nyes")
+            choice(name: 'rollback', choices: "no\nyes", describe: "是否回滚"),
+            string(name: 'rollback_version', values: imageTag, describe: "是否回滚"),
+            choice(name: 'backup', choices: "no\nyes", describe: "保存为稳定版本"),
         ];
         def result = input id: 'deploy-test', message: ' do you want to rollback and backup ?', parameters: inputParameters;
        
         if ( result.rollback == "yes" ) {
             // 回滚,上次的稳定版
-            deployK8s(stableHarborImagesUrl)
+            rollbackVersionImageTag = result.rollback_version + '-' + deployEnv + '-' +'stable'
+            rollbackHarborImagesUrl = registry + '/' + imagePath + ':' + rollbackVersionImageTag
+            deployK8s(rollbackHarborImagesUrl)
         }
 
         if ( result.backup == "yes" ) {
@@ -288,7 +287,7 @@ def sendDingDing(msg) {
         -H 'Content-Type: application/json' \
         -d '{"msgtype": "text",
             "text": {
-                "content": "ypc${msg}"
+                "content": "ypc\r\n$msg"
             }
             }'
     '''

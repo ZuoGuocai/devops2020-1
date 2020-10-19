@@ -283,23 +283,18 @@ def getGitBranchName() {
 
 // 钉钉消息
 def sendDingDing(msg) {
-    env.MSG = msg
-    MSG = msg
     msg = msg + "\n 项目:${JOB_BASE_NAME}"
     msg = msg + "\n 信息查看:${JOB_DISPLAY_URL}"
-    environment {
-        MSG = msg
-    }
+    env.MSG = msg
     sh '''
-        printenv
-        echo "1"
-        curl 'https://oapi.dingtalk.com/robot/send?access_token=9867a209c88b125e7f5c72e6f24b3b5940034317e35fbfb9b2f6645cf52208b7' \
+        curl 'https://oapi.dingtalk.com/robot/send?access_token=89ccfc0f43949b29212b5d919ab339cdca34a5ed6bc7b2b2fb1108af3e1214c6' \
         -H 'Content-Type: application/json' \
-        -d '{"msgtype": "text",
-            "text": {
-                "content": "ypc\r\n $MSG"
+        -d "{
+            \\"msgtype\\": \\"text\\",
+            \\"text\\": {
+                \\"content\\": \\"${MSG} \\"
             }
-            }'
+        }"
     '''
 }
 

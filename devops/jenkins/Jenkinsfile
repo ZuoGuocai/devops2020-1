@@ -91,43 +91,8 @@ harborImagesUrl = registry + '/' + imagePath + ':' + imageTag
 stableImageTag = imageTag + '-' + deployEnv + '-' +'stable'
 stableHarborImagesUrl = registry + '/' + imagePath + ':' + stableImageTag
 
-def deployK8s(deployHarborImgUrl) {
 
-     deployDate = new Date().format("yyyy-MM-dd-HH-mm-ss")
-    // 远程
-    // exec = 'ssh fubiao@192.168.20.252 ' + '"sudo kubectl -n ' + namespace + ' patch deployment ' + k8sService + '  --patch ' +  ''' '{\\"spec\\":{\\"template\\":{\\"metadata\\":{\\"labels\\":{\\"redeploy\\":\\"''' + deployDate + '''\\"}},\\"spec\\":{\\"containers\\":[{\\"name\\":\\"''' + k8sService + '''\\",\\"image\\":\\"''' + image + '''\\"}]}}}}' ''' + '"'
-    // 本地
-    exec = 'kubectl -n ' + namespace + ' patch deployment ' + k8sDeployName + '  --patch ' +  ''' '{"spec":{"template":{"metadata":{"labels":{"redeploy":"''' + deployDate + '''"}},"spec":{"containers":[{"name":"''' + k8sContainerName + '''","image":"''' + deployHarborImgUrl + '''"}]}}}}' '''
-    sh exec
 
-    // 应用是否更新完成
-    sh '''
-        last_str=$(curl --connect-timeout 5 -m 5 http://10.10.5.43:31897/check)
-        echo "last_str=${last_str}"
-        for i in {1..120}
-        do
-            sleep 1s
-            new_str=$(curl --connect-timeout 5 -m 5 http://10.10.5.43:31897/check)
-            echo $i"="$new_str
-            if [ "${last_str}" != "${new_str}" ]; then
-                echo "deploy k8s success"
-                exit 0;
-            fi
-        done
-        echo "deploy k8s fail"
-        exit 2;
-    '''
-}
-
-// 获取默认拉取的 分支名字
-def getGitBranchName() {
-    return scm.branches[0].name.split("/")[1]
-}
-
-//
-def sendDingDing() {
-
-}
 
 nodeLabel = "master"
 node(nodeLabel) {
@@ -256,11 +221,6 @@ node(nodeLabel) {
     stage('Deploy') {
         deployK8s(harborImagesUrl)
     }
-    
-    stage('Test'){
-
-        
-    }
 
     stage('RollBack') {
         def inputParameters = [
@@ -281,9 +241,58 @@ node(nodeLabel) {
                 app.push(stableImageTag)
             }
         }
+
+        sendDingDing("deploy complete")
         
     }
 
+}
+
+def deployK8s(deployHarborImgUrl) {
+
+     deployDate = new Date().format("yyyy-MM-dd-HH-mm-ss")
+    // 远程
+    // exec = 'ssh fubiao@192.168.20.252 ' + '"sudo kubectl -n ' + namespace + ' patch deployment ' + k8sService + '  --patch ' +  ''' '{\\"spec\\":{\\"template\\":{\\"metadata\\":{\\"labels\\":{\\"redeploy\\":\\"''' + deployDate + '''\\"}},\\"spec\\":{\\"containers\\":[{\\"name\\":\\"''' + k8sService + '''\\",\\"image\\":\\"''' + image + '''\\"}]}}}}' ''' + '"'
+    // 本地
+    exec = 'kubectl -n ' + namespace + ' patch deployment ' + k8sDeployName + '  --patch ' +  ''' '{"spec":{"template":{"metadata":{"labels":{"redeploy":"''' + deployDate + '''"}},"spec":{"containers":[{"name":"''' + k8sContainerName + '''","image":"''' + deployHarborImgUrl + '''"}]}}}}' '''
+    sh exec
+
+    // 应用是否更新完成
+    sh '''
+        last_str=$(curl --connect-timeout 5 -m 5 http://10.10.5.43:31897/check)
+        echo "last_str=${last_str}"
+        for i in {1..120}
+        do
+            sleep 1s
+            new_str=$(curl --connect-timeout 5 -m 5 http://10.10.5.43:31897/check)
+            echo $i"="$new_str
+            if [ "${last_str}" != "${new_str}" ]; then
+                echo "deploy k8s success"
+                exit 0;
+            fi
+        done
+        echo "deploy k8s fail"
+        exit 2;
+    '''
+}
+
+// 获取默认拉取的 分支名字
+def getGitBranchName() {
+    return scm.branches[0].name.split("/")[1]
+}
+
+// 钉钉消息
+def sendDingDing(msg) {
+
+    sh '''
+        curl 'https://oapi.dingtalk.com/robot/send?access_token=9867a209c88b125e7f5c72e6f24b3b5940034317e35fbfb9b2f6645cf52208b7' \
+        -H 'Content-Type: application/json' \
+        -d '{"msgtype": "text",
+            "text": {
+                "content": "测试机器人${msg}"
+            }
+            }'
+    '''
 }
 
 

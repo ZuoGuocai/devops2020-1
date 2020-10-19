@@ -214,7 +214,7 @@ node(nodeLabel) {
 
         dir ("devops/docker/") {
             app = docker.build(harborImagesUrl)
-            app.push(imageTag)
+            app.push(publishImageTag)
         }
     }
 

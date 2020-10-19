@@ -159,7 +159,7 @@ node(nodeLabel) {
             withSonarQubeEnv("sonarqube-server") {
                 sh "${tool("sonarqube")}/bin/sonar-scanner \
                     -Dsonar.projectKey=devops-java \
-                    -Dsonar.sources=src/main/java/ \
+                    -Dsonar.java.sources=src/main/java/ \
                     -Dsonar.java.binaries=build/classes \
                     -Dsonar.language=java \
                     -Dsonar.host.url=http://10.10.5.42:9000 \

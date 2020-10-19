@@ -273,6 +273,7 @@ def deployK8s(deployHarborImgUrl) {
         echo "deploy k8s fail"
         exit 2;
     '''
+    // 或者 判断 当前运行的容器镜像版本
 }
 
 // 获取默认拉取的 分支名字
@@ -282,8 +283,8 @@ def getGitBranchName() {
 
 // 钉钉消息
 def sendDingDing(msg) {
-    env.MSG = msg
-    print env
+    $env.MSG = msg
+    print "$env"
     sh '''
         curl 'https://oapi.dingtalk.com/robot/send?access_token=9867a209c88b125e7f5c72e6f24b3b5940034317e35fbfb9b2f6645cf52208b7' \
         -H 'Content-Type: application/json' \

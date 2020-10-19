@@ -84,8 +84,8 @@ if(deployEnv == "prod") {
 // 发布版
 //"${BUILD_ID}"
 versionDate = new Date().format("yyyyMMddHHmmss")
-imageTag = imageTag + '-'+deployEnv + '-' +  versionDate 
-harborImagesUrl = registry + '/' + imagePath + ':' + imageTag
+publishImageTag = imageTag + '-'+deployEnv + '-' +  versionDate 
+harborImagesUrl = registry + '/' + imagePath + ':' + publishImageTag
 
 // 稳定版
 stableImageTag = imageTag + '-' + deployEnv + '-' +'stable'
@@ -283,13 +283,12 @@ def getGitBranchName() {
 
 // 钉钉消息
 def sendDingDing(msg) {
-
     sh '''
         curl 'https://oapi.dingtalk.com/robot/send?access_token=9867a209c88b125e7f5c72e6f24b3b5940034317e35fbfb9b2f6645cf52208b7' \
         -H 'Content-Type: application/json' \
         -d '{"msgtype": "text",
             "text": {
-                "content": "测试机器人${msg}"
+                "content": "ypc${msg}"
             }
             }'
     '''

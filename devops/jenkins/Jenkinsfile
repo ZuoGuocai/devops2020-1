@@ -220,9 +220,9 @@ node(nodeLabel) {
 
     stage('RollBack') {
         def inputParameters = [
-            choice(name: 'rollback', choices: "no\nyes", describe: "是否回滚"),
-            string(name: 'rollback_version', values: imageTag, describe: "是否回滚"),
-            choice(name: 'backup', choices: "no\nyes", describe: "保存为稳定版本"),
+            choice(name: 'rollback', choices: "no\nyes", description: "是否回滚"),
+            string(name: 'rollback_version', defaultValue: imageTag, description: "是否回滚"),
+            choice(name: 'backup', choices: "no\nyes", description: "保存为稳定版本"),
         ];
         def result = input id: 'deploy-test', message: ' do you want to rollback and backup ?', parameters: inputParameters;
        

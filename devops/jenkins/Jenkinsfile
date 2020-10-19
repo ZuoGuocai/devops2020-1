@@ -97,7 +97,7 @@ node(nodeLabel) {
     // 默认 test 分支
     stage('Checkout Git') {
         checkout scm
-        print "$env"
+        sh 'print env'
         def BRANCH_NAME = getGitBranchName()
         if ( BRANCH_NAME != checkoutBranch ) {
             // 非部署分支，重新拉取
@@ -284,13 +284,13 @@ def getGitBranchName() {
 // 钉钉消息
 def sendDingDing(msg) {
     env.MSG = msg
-    print "$env"
+    sh 'print env'
     sh '''
         curl 'https://oapi.dingtalk.com/robot/send?access_token=9867a209c88b125e7f5c72e6f24b3b5940034317e35fbfb9b2f6645cf52208b7' \
         -H 'Content-Type: application/json' \
         -d '{"msgtype": "text",
             "text": {
-                "content": "ypc\r\n$MSG"
+                "content": "ypc\r\n env.MSG"
             }
             }'
     '''

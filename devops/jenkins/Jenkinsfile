@@ -160,7 +160,7 @@ node(nodeLabel) {
                     -Dsonar.projectKey=devops-java \
                     -Dsonar.sources=src/main/java/ \
                     -Dsonar.java.binaries=build/classes \
-                    -Dsonar.java.source=11 \
+                    -Dsonar.java.libraries=libs/devops-test-1.0.0-boot.jar \
                     -Dsonar.language=java \
                     -Dsonar.host.url=http://10.10.5.42:9000 \
                     -Dsonar.login=a5b71aa10484db2c7a1614f6f601d687f9d556e2"

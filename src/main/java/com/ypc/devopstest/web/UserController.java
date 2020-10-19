@@ -29,9 +29,9 @@ public class UserController {
     public Result get(HttpServletRequest httpServletRequest) throws ExecutionException {
         ParamMap paramMap = ParamMap.init(httpServletRequest);
         this.count++;
-        if(this.count == 2){
+        //if(this.count == 2){
             userService = null;
-        }
+        //}
         return Result.ok(userService.listBy(paramMap));
     }
 

@@ -241,7 +241,7 @@ node(nodeLabel) {
             }
         }
 
-        sendDingDing("deploy complete")
+        sendDingDing("任务执行完成")
         
     }
 
@@ -283,7 +283,9 @@ def getGitBranchName() {
 
 // 钉钉消息
 def sendDingDing(msg) {
+    msg = " " + msg
     msg = msg + "\n 项目:${JOB_BASE_NAME}"
+    msg = msg + "\n 环境:${deployEnv}"
     msg = msg + "\n 信息查看:${JOB_DISPLAY_URL}"
     env.MSG = msg
     sh '''

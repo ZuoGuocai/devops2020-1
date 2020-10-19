@@ -242,7 +242,6 @@ node(nodeLabel) {
         }
 
         sendDingDing("任务执行完成")
-        
     }
 
 }

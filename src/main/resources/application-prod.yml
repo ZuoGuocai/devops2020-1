@@ -6,5 +6,5 @@ server:
   port: 30001
   address: 0.0.0.0
 
-logging.level.root: DEBUG
-logging.level.com.ypc: DEBUG
+logging.level.root: INFO
+logging.level.com.ypc: INFO

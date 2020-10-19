@@ -52,8 +52,8 @@ public class UserTest {
 
         String response = authResult.getResponse().getContentAsString();
         Result result = result = objectMapper.readValue(response, Result.class);
-
-        Assert.assertTrue("获取用户数据 失败",result.getCode()==200);
+        result = null;
+        Assert.assertTrue("获取用户数据 失败",result.getCode()!=200);
     }
 
 }

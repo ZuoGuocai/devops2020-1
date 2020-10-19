@@ -96,8 +96,8 @@ node(nodeLabel) {
 
     // 默认 test 分支
     stage('Checkout Git') {
-        // checkout scm
-        sh 'printenv'
+        checkout scm
+        
         def BRANCH_NAME = getGitBranchName()
         if ( BRANCH_NAME != checkoutBranch ) {
             // 非部署分支，重新拉取

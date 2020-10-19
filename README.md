@@ -45,8 +45,11 @@ admin admin123456
 4、截图展示资源和日志的监控(栈日志多行搜集)  
 
 * 度量指标  
-- 监控  
+- k8s监控  
 用的lens   
+
+- 硬件监控  
+telegraf + influxDB + grafana  
 
 - 日志搜集   
 1、fluent-bit -> kafka <- flink -> clickhouse  

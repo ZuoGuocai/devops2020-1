@@ -96,7 +96,7 @@ node(nodeLabel) {
 
     // 默认 test 分支
     stage('Checkout Git') {
-        checkout scm
+        // checkout scm
         sh 'printenv'
         def BRANCH_NAME = getGitBranchName()
         if ( BRANCH_NAME != checkoutBranch ) {
@@ -113,7 +113,7 @@ node(nodeLabel) {
         }
     }
 
-    //stage("Checkout from GitLab") {
+    //stage("Checkout Git") {
     //    script {
     //        git branch: checkoutBranch,
     //        credentialsId: 'gitlab',
@@ -131,7 +131,7 @@ node(nodeLabel) {
             '''
         } catch(error) {
             echo "Failed to Junit: " + error.getMessage()
-            sh 'exit 1'
+            sh 'exit 2'
         } finally {
             publishHTML([
                 allowMissing: false,

@@ -4,7 +4,8 @@
 // pushImage(optional), whether push image to ali registry, default: true
 // nodeLabel(optional), the run jenkins node label, default: null, run in master
 // namespace(required), the running namespace in kubenetes
-// k8sService(optional), the k8s deployment service, default as service
+// k8sDeployName(optional), the k8s deployment service, default as devops-deploy
+// k8sContainerName(optional), the k8s pod container name, default as devops-containers
 
 namespace="devops"
 deployName="devops-deploy"
@@ -80,14 +81,14 @@ if(deployEnv == "prod") {
 }
 
 
-
 // 发布版
-// versionDate = new Date().format("yyyyMMddHHmmss")
-imageTag = imageTag + '-'+deployEnv + '-' + "${BUILD_ID}"
+//"${BUILD_ID}"
+versionDate = new Date().format("yyyyMMddHHmmss")
+imageTag = imageTag + '-'+deployEnv + '-' +  versionDate 
 harborImagesUrl = registry + '/' + imagePath + ':' + imageTag
 
 // 稳定版
-stableImageTag = deployEnv + '-' +'stable'
+stableImageTag = imageTag + '-' + deployEnv + '-' +'stable'
 stableHarborImagesUrl = registry + '/' + imagePath + ':' + stableImageTag
 
 def deployK8s(deployHarborImgUrl) {
@@ -258,27 +259,29 @@ node(nodeLabel) {
     
     stage('Test'){
 
-        def inputParameters = [
-            choice(name: 'rollback', choices: "no/yes"),
-            choice(name: 'backup', choices: "no/yes")
-        ];
-        def result = input id: 'deploy-test', message: ' do you want to rollback and backup ?', parameters: inputParameters;
-        echo result.rollback;
-        echo result.backup;
+        
     }
 
     stage('RollBack') {
-        if( input("do you want to rollback ?") ) {
+        def inputParameters = [
+            choice(name: 'rollback', choices: "no\nyes"),
+            choice(name: 'backup', choices: "no\nyes")
+        ];
+        def result = input id: 'deploy-test', message: ' do you want to rollback and backup ?', parameters: inputParameters;
+       
+        if ( result.rollback == "yes" ) {
             // 回滚,上次的稳定版
             deployK8s(stableHarborImagesUrl)
-        }else {
+        }
+        
+        if ( result.backup == "yes" ) {
             // 保存本次为 stable 版本
             dir ("devops/docker/") {
                 app = docker.build(stableHarborImagesUrl)
                 app.push(stableImageTag)
             }
-
         }
+        
     }
 
 }

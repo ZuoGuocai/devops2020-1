@@ -285,13 +285,14 @@ def getGitBranchName() {
 def sendDingDing(msg) {
     env.MSG = msg
     MSG = msg
+    msg = msg + "\n 项目:${JOB_BASE_NAME}"
     msg = msg + "\n 信息查看:${JOB_DISPLAY_URL}"
     environment {
         MSG = msg
     }
     sh '''
         printenv
-
+        echo "1"
         curl 'https://oapi.dingtalk.com/robot/send?access_token=9867a209c88b125e7f5c72e6f24b3b5940034317e35fbfb9b2f6645cf52208b7' \
         -H 'Content-Type: application/json' \
         -d '{"msgtype": "text",

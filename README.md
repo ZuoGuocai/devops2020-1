@@ -24,9 +24,7 @@ Kubernetes   : 集群管理
 手动执行jenkins发布、回滚   
 
 ## 演示说明
-基于jenkins完成devops pipeline流程，缺少 需求管理融入、度量指标展示   
-jenkins : http://106.14.120.62:9999    
-admin admin123456   
+基于jenkins完成devops pipeline流程，缺少 需求管理融入     
 
 ##### 演示环境  
 物理机2台 2c|8g  
@@ -39,7 +37,7 @@ admin admin123456
 3、发布成功再备份    
 4、发布失败再回滚   
 
-##### 度量指标和日志    
+##### 其它:监控和日志    
 - k8s监控  
 lens   
 

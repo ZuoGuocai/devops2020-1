@@ -29,22 +29,19 @@ kubernetes   : docker集群管理
 jenkins : http://106.14.120.62:9999    
 admin admin123456   
 
-* 对devops在技术部门的人员结构想法  
-1、6名开发为1组，组长做为 devops 执行人，1个运维同学大约可以负担 10组的维护    
-
-* 演示环境  
+##### 演示环境  
 物理机2台 2c|8g  
 1台: jenkins + k8s master  
 1台: gitlab + harbor + sonarqube  
 
-* 演示场景
+##### 演示场景  
 1、Unit Test 失败  
 2、Unit Test 失败  
 3、正确发布  
 4、错误发布回滚  
 5、截图展示资源和日志的监控(栈日志多行搜集)  
 
-* 度量指标  
+##### 度量指标  
 - k8s监控  
 用的lens   
 

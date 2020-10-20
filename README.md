@@ -30,7 +30,7 @@ kubernetes   : docker集群管理
 jenkins : http://106.14.120.62:9999    
 admin admin123456   
 
-* 对devops的执行人员想法  
+* 对devops在技术部门的人员结构想法  
 1、6名开发为1组，组长做为 devops 执行人，1个运维同学大约可以负担 10组的维护    
 
 * 演示环境  

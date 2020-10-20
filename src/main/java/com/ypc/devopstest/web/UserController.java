@@ -30,7 +30,7 @@ public class UserController {
         ParamMap paramMap = ParamMap.init(httpServletRequest);
         this.count++;
         if(this.count == 2){
-            userService = null;
+            //userService = null;
         }
         return Result.ok(userService.listBy(paramMap));
     }

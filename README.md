@@ -24,10 +24,10 @@ Kubernetes   : 集群管理
 手动执行jenkins发布、回滚   
 
 ## 演示说明
-基于jenkins完成devops pipeline流程，缺少 需求管理融入     
+基于jenkins完成devops的pipeline，缺少需求管理融入     
 
 ##### 演示环境  
-物理机2台 2c|8g  
+物理机2台 2c | 8g  
 1台: jenkins + k8s master  
 1台: gitlab + harbor + sonarqube  
 
@@ -44,7 +44,7 @@ lens
 - 硬件监控  
 telegraf + influxDB + grafana  
 
-- 日志搜集   
+- 日志处理     
 1、fluent-bit/filebeat -> kafka <- flink -> clickhouse  
 2、web展示  
 

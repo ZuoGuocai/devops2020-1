@@ -14,7 +14,6 @@ Step 7 ,RollBack         => 手动回滚和保存稳定版本
 
 ## 工具链描述 
 ```
-Gradle       : java包管理工具   
 Jenkins      : 项目构建   
 SonarQube    : 代码检测   
 Gitlab       : 代码仓库，可触发jenkins构建   
@@ -34,15 +33,16 @@ admin admin123456
 1、6名开发为1组，组长做为 devops 执行人，1个运维同学大约可以负担 10组的维护    
 
 * 演示环境  
-物理机2台 2c|8g
-1台: jenkins + k8s master
-1台: gitlab + harbor + sonarqube 
+物理机2台 2c|8g  
+1台: jenkins + k8s master  
+1台: gitlab + harbor + sonarqube  
 
-* 演示步骤  
+* 演示场景
 1、Unit Test 失败  
-2、正确发布  
-3、错误发布回滚  
-4、截图展示资源和日志的监控(栈日志多行搜集)  
+2、Unit Test 失败  
+3、正确发布  
+4、错误发布回滚  
+5、截图展示资源和日志的监控(栈日志多行搜集)  
 
 * 度量指标  
 - k8s监控  
@@ -52,6 +52,6 @@ admin admin123456
 telegraf + influxDB + grafana  
 
 - 日志搜集   
-1、fluent-bit -> kafka <- flink -> clickhouse  
+1、fluent-bit/filebeat -> kafka <- flink -> clickhouse  
 2、web展示  
 

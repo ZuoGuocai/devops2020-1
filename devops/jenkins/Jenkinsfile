@@ -144,6 +144,33 @@ node(nodeLabel) {
         }
     }
 
+    stage('Build Jar') {
+        sh '''
+            DIR=$PWD
+            docker run -u root -v /open/data/gradle/:/home/gradle/.gradle/  -v ${DIR}:/home/gradle/ --rm  gradle:4.10.2-jdk11 /home/gradle/gradlew bootJar --profile  --warning-mode all
+            cp build/libs/* devops/docker/
+
+            files=`ls ./build/reports/profile/`
+            cd build/reports/profile/
+            for file in $files
+            do
+                if [ -d $file ];then
+                   continue
+                fi
+                mv $file index.html
+            done
+        '''
+        publishHTML([
+            allowMissing: false,
+            alwaysLinkToLastBuild: false,
+            keepAll: true,
+            reportDir: 'build/reports/profile/',
+            reportFiles: 'index.html',
+            reportName: 'BuildJar Report'
+        ])
+    }
+
+
     stage('Code Check') {
         // 基于 gradle
         //sh '''
@@ -174,32 +201,7 @@ node(nodeLabel) {
         }
     }
 
-    stage('Build Jar') {
-        sh '''
-            DIR=$PWD
-            docker run -u root -v /open/data/gradle/:/home/gradle/.gradle/  -v ${DIR}:/home/gradle/ --rm  gradle:4.10.2-jdk11 /home/gradle/gradlew bootJar --profile  --warning-mode all
-            cp build/libs/* devops/docker/
-
-            files=`ls ./build/reports/profile/`
-            cd build/reports/profile/
-            for file in $files
-            do
-                if [ -d $file ];then
-                   continue
-                fi
-                mv $file index.html
-            done
-        '''
-        publishHTML([
-            allowMissing: false,
-            alwaysLinkToLastBuild: false,
-            keepAll: true,
-            reportDir: 'build/reports/profile/',
-            reportFiles: 'index.html',
-            reportName: 'BuildJar Report'
-        ])
-    }
-
+    
     stage('Build Image') {
         //修改java启动环境
         sh '''

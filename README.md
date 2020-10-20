@@ -5,8 +5,8 @@ spring-boot web 示例项目
 ```
 Step 1 ,Checkout Git     => 获取代码   
 Step 2 ,Unit Test        => 单元测试
-Step 3 ,Code Check       => 代码检测   
-Step 4 ,Build Jar        => 构建jar包
+Step 3 ,Build Jar        => 构建jar包
+Step 4 ,Code Check       => 代码检测   
 Step 5 ,Build Image      => 构建docker镜像   
 Step 6 ,Deploy           => 滚动更新,应用健康探测  
 Step 7 ,RollBack         => 手动回滚和保存稳定版本       
@@ -16,16 +16,15 @@ Step 7 ,RollBack         => 手动回滚和保存稳定版本
 ```
 Jenkins      : 项目构建   
 SonarQube    : 代码检测   
-Gitlab       : 代码仓库，可触发jenkins构建   
+Gitlab       : 代码仓库   
 Harbor       : docker镜像仓库   
-kubernetes   : docker集群管理   
+Kubernetes   : 集群管理   
 ```
 ## CI/CD 功能
-测试环境, 项目开发人员提交代码后，自动触发jenkins构建完任务后，钉钉机器人通知项目组结果   
-生产环境, 手动执行jenkins发布、回滚  
+手动执行jenkins发布、回滚   
 
 ## 演示说明
-基于jenkins完成devops pipeline流程，缺少 需求管理融入、度量指标展示  
+基于jenkins完成devops pipeline流程，缺少 需求管理融入、度量指标展示   
 jenkins : http://106.14.120.62:9999    
 admin admin123456   
 
@@ -35,15 +34,14 @@ admin admin123456
 1台: gitlab + harbor + sonarqube  
 
 ##### 演示场景  
-1、Unit Test 失败  
-2、Unit Test 失败  
-3、正确发布  
-4、错误发布回滚  
-5、截图展示资源和日志的监控(栈日志多行搜集)  
+1、单元测试 失败  
+2、代码检测 失败  
+3、发布成功再备份    
+4、发布失败再回滚   
 
-##### 度量指标  
+##### 度量指标和日志    
 - k8s监控  
-用的lens   
+lens   
 
 - 硬件监控  
 telegraf + influxDB + grafana  
